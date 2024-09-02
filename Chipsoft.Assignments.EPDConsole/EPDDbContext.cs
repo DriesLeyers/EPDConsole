@@ -4,7 +4,6 @@ namespace Chipsoft.Assignments.EPDConsole
 {
     public class EPDDbContext : DbContext
     {
-        // The following configures EF to create a Sqlite database file in the
         protected override void OnConfiguring(DbContextOptionsBuilder options)
             => options.UseSqlite($"Data Source=epd.db");
         public DbSet<Patient> Patients { get; set; }
@@ -13,44 +12,18 @@ namespace Chipsoft.Assignments.EPDConsole
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Patient>()
-                .HasKey(p => p.Id);
+            modelBuilder.Entity<Patient>(e =>
+            {
+                e.HasIndex(p => p.NationalRegisterNumber).IsUnique();
+            });
 
-            modelBuilder.Entity<Patient>()
-                .Property(p => p.Id)
-                .ValueGeneratedOnAdd();
-
-            modelBuilder.Entity<Patient>()
-                .HasIndex(p => p.NationalRegisterNumber)
-                .IsUnique();
-
-            modelBuilder.Entity<Physician>()
-               .HasKey(p => p.Id);
-
-            modelBuilder.Entity<Physician>()
-                .Property(p => p.Id)
-                .ValueGeneratedOnAdd();
-
-            modelBuilder.Entity<Appointment>()
-             .HasKey(p => p.Id);
-
-            modelBuilder.Entity<Appointment>()
-                .Property(p => p.Id)
-                .ValueGeneratedOnAdd();
-
-            modelBuilder.Entity<Appointment>()
-                .HasOne(a => a.Patient)
-                .WithMany()
-                .HasForeignKey(a => a.PatientId);
-
-            modelBuilder.Entity<Appointment>()
-                .HasOne(a => a.Physician)
-                .WithMany()
-                .HasForeignKey(a => a.PhysicianId);
+            modelBuilder.Entity<Appointment>(e =>
+            {
+                e.HasOne(p => p.Patient).WithMany(p => p.Appointments);
+                e.HasOne(p => p.Physician).WithMany(p => p.Appointments);
+            });
 
             base.OnModelCreating(modelBuilder);
         }
     }
-
-
 }

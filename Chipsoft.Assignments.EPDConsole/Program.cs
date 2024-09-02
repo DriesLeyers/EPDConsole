@@ -72,7 +72,7 @@ namespace Chipsoft.Assignments.EPDConsole
                         case 1:
                             foreach (Appointment appointment in dbContext.Appointments.Include(x => x.Physician).Include(x => x.Patient))
                             {
-                                Console.WriteLine($"Afspraak met ID: {appointment.Id} tussen {appointment.Patient.FirstName} {appointment.Patient.LastName} en {appointment.Physician.FirstName} {appointment.Physician.LastName}");
+                                Console.WriteLine($"Afspraak met ID: {appointment.Id} tussen {appointment.Patient.FirstName} {appointment.Patient.LastName} en {appointment.Physician.FirstName} {appointment.Physician.LastName} op {appointment.Date}");
                             }
                             Console.WriteLine("Druk op enter om verder te gaan");
                             Console.ReadLine();
@@ -82,9 +82,9 @@ namespace Chipsoft.Assignments.EPDConsole
                             Console.WriteLine("Vul de ID in van de patient waarvan u alle afspraken wilt zien:");
                             int patientId = int.Parse(Console.ReadLine());
 
-                            foreach (Appointment appointment in dbContext.Appointments.Include(x => x.Physician).Include(x => x.Patient).Where(x => x.PatientId == patientId))
+                            foreach (Appointment appointment in dbContext.Patients.First(x => x.Id == patientId).Appointments)
                             {
-                                Console.WriteLine($"Afspraak met ID: {appointment.Id} tussen {appointment.Patient.FirstName} {appointment.Patient.LastName} en {appointment.Physician.FirstName} {appointment.Physician.LastName}");
+                                Console.WriteLine($"Afspraak met ID: {appointment.Id} tussen {appointment.Patient.FirstName} {appointment.Patient.LastName} en {appointment.Physician.FirstName} {appointment.Physician.LastName} op {appointment.Date}");
                             }
                             Console.WriteLine("Druk op enter om verder te gaan");
                             Console.ReadLine();
@@ -94,9 +94,9 @@ namespace Chipsoft.Assignments.EPDConsole
                             Console.WriteLine("Vul de ID in van de arts waarvan u alle afspraken wilt zien:");
                             int physicianId = int.Parse(Console.ReadLine());
 
-                            foreach (Appointment appointment in dbContext.Appointments.Include(x => x.Physician).Include(x => x.Patient).Where(x => x.PhysicianId == physicianId))
+                            foreach (Appointment appointment in dbContext.Physicians.First(x => x.Id == physicianId).Appointments)
                             {
-                                Console.WriteLine($"Afspraak met ID: {appointment.Id} tussen {appointment.Patient.FirstName} {appointment.Patient.LastName} en {appointment.Physician.FirstName} {appointment.Physician.LastName}");
+                                Console.WriteLine($"Afspraak met ID: {appointment.Id} tussen {appointment.Patient.FirstName} {appointment.Patient.LastName} en {appointment.Physician.FirstName} {appointment.Physician.LastName} op {appointment.Date}");
                             }
                             Console.WriteLine("Druk op enter om verder te gaan");
                             Console.ReadLine();
@@ -115,7 +115,7 @@ namespace Chipsoft.Assignments.EPDConsole
 
             using (var dbContext = new EPDDbContext())
             {
-                Console.WriteLine("Voor welke datum is de afspraak?");
+                Console.WriteLine("Voor welke datum is de afspraak? (YYYY-MM-DD):");
                 DateTime appointmentDate;
                 string? inputDate = Console.ReadLine();
 
@@ -173,7 +173,7 @@ namespace Chipsoft.Assignments.EPDConsole
                     Console.WriteLine($"Op dit moment heeft {physician.FirstName} {physician.LastName} al een afspraak. Geef een ander tijdstip op of probeer een andere patient.");
                 }
 
-            } while (physician == null && !isPhysicianAvailable);
+            } while (physician == null || !isPhysicianAvailable);
 
             return physician;
         }
@@ -203,19 +203,19 @@ namespace Chipsoft.Assignments.EPDConsole
 
         private static bool CheckIfPatientIsAvailable(EPDDbContext dbContext, Patient patient, DateTime date)
         {
-            return dbContext.Appointments.Where(x => x.PatientId == patient.Id).ToList()
-                .Where(x => x.Date == date).Count() == 0;
+            return !dbContext.Appointments.Where(x => x.Patient.Id == patient.Id).ToList()
+                .Where(x => x.Date == date).Any();
         }
 
         private static bool CheckIfPhysicianIsAvailable(EPDDbContext dbContext, Physician physician, DateTime date)
         {
-            return dbContext.Appointments.Where(x => x.PhysicianId == physician.Id).ToList()
-                .Where(x => x.Date == date).Count() == 0;
+            return !dbContext.Appointments.Where(x => x.Physician.Id == physician.Id).ToList()
+                .Where(x => x.Date == date).Any();
         }
 
         private static void PrintAllPatients(EPDDbContext context)
         {
-            foreach (Patient patient in context.Patients)
+            foreach (Patient patient in context.Patients.Where(x => x.IsActive))
             {
                 Console.WriteLine($"ID: {patient.Id} Naam: {patient.FirstName} Achternaam: {patient.LastName}");
             }
@@ -223,7 +223,7 @@ namespace Chipsoft.Assignments.EPDConsole
 
         private static void PrintAllPhysicians(EPDDbContext context)
         {
-            foreach (Physician physicians in context.Physicians)
+            foreach (Physician physicians in context.Physicians.Where(x => x.IsActive))
             {
                 Console.WriteLine($"ID: {physicians.Id} Naam: {physicians.FirstName} Achternaam: {physicians.LastName}");
             }
@@ -270,36 +270,6 @@ namespace Chipsoft.Assignments.EPDConsole
                 Console.WriteLine("Voer de achternaam van de arts in:");
                 newPhysician.LastName = Console.ReadLine();
 
-                Console.WriteLine("Voer de email van de arts in:");
-                newPhysician.Email = Console.ReadLine();
-
-                Console.WriteLine("Voer de geboortedatum van de arts in (YYYY-MM-DD):");
-                DateTime birthDate;
-                var inputBirthDate = Console.ReadLine();
-
-                while (string.IsNullOrWhiteSpace(inputBirthDate) || !DateTime.TryParse(inputBirthDate, out birthDate))
-                {
-                    Console.WriteLine("Ongeldig formaat. Probeer opnieuw (YYYY-MM-DD):");
-                    inputBirthDate = Console.ReadLine();
-                }
-
-                newPhysician.BirthDate = birthDate;
-
-                Console.WriteLine("Voer het dorp of de stad van de arts in:");
-                newPhysician.City = Console.ReadLine();
-
-                Console.WriteLine("Voer de postcode van de arts in:");
-                newPhysician.PostalCode = int.Parse(Console.ReadLine());
-
-                Console.WriteLine("Voer het adres van de arts in:");
-                newPhysician.Address = Console.ReadLine();
-
-                Console.WriteLine("Voer het tefeloonnummer van de arts in:");
-                newPhysician.PhoneNumber = Console.ReadLine();
-
-                Console.WriteLine("Geef het geslacht van de arts in (M/V/X):");
-                newPhysician.Gender = Console.ReadLine();
-
                 dbContext.Add(newPhysician);
                 dbContext.SaveChanges();
             }
@@ -334,7 +304,6 @@ namespace Chipsoft.Assignments.EPDConsole
             }
         }
 
-
         #region FreeCodeForAssignment
         static void Main(string[] args)
         {
@@ -363,35 +332,36 @@ namespace Chipsoft.Assignments.EPDConsole
 
             if (int.TryParse(Console.ReadLine(), out int option))
             {
+                if (option == 7)
+                    return false;
+
                 switch (option)
                 {
                     case 1:
                         AddPatient();
-                        return true;
+                        break;
                     case 2:
                         DeletePatient();
-                        return true;
+                        break;
                     case 3:
                         AddPhysician();
-                        return true;
+                        break;
                     case 4:
                         DeletePhysician();
-                        return true;
+                        break;
                     case 5:
                         AddAppointment();
-                        return true;
+                        break;
                     case 6:
                         ShowAppointment();
-                        return true;
-                    case 7:
-                        return false;
+                        break;
                     case 8:
                         EPDDbContext dbContext = new EPDDbContext();
                         dbContext.Database.EnsureDeleted();
                         dbContext.Database.EnsureCreated();
-                        return true;
+                        break;
                     default:
-                        return true;
+                        break;
                 }
             }
             return true;
