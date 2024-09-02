@@ -76,6 +76,29 @@
 
         private static void DeletePatient()
         {
+            Console.WriteLine("Enter the id of the patient you want to delete:");
+
+            using (var dbContext = new EPDDbContext())
+            {
+                int patientId = 0;
+                Patient? patient = null;
+
+                do
+                {
+                    patientId = int.Parse(Console.ReadLine());
+                    patient = dbContext.Patients.FirstOrDefault(x => x.Id == patientId);
+
+                    if (patient == null)
+                        Console.WriteLine("No patient found with this id. Please try again.");
+
+                } while (patient == null);
+
+                Console.WriteLine($"Please check if you want to delete this user: {patient.FirstName} {patient.LastName} with id: {patient.Id} \n Press enter to continue: ");
+                Console.ReadLine();
+
+                dbContext.Patients.Remove(patient);
+                dbContext.SaveChanges();
+            }
         }
 
 
