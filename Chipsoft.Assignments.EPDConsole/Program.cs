@@ -1,4 +1,6 @@
-﻿namespace Chipsoft.Assignments.EPDConsole
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace Chipsoft.Assignments.EPDConsole
 {
     public class Program
     {
@@ -57,10 +59,130 @@
 
         private static void ShowAppointment()
         {
+            Console.WriteLine("1 - Alle afspraken");
+            Console.WriteLine("2 - Alle afspraken zoeken voor patient");
+            Console.WriteLine("3 - Alle afspraken zoeken voor arts");
+
+            using (var dbContext = new EPDDbContext())
+            {
+                if (int.TryParse(Console.ReadLine(), out int option))
+                {
+                    switch (option)
+                    {
+                        case 1:
+                            foreach (Appointment appointment in dbContext.Appointments.Include(x => x.Physician).Include(x => x.Patient))
+                            {
+                                Console.WriteLine($"Afspraak met ID: {appointment.Id} tussen {appointment.Patient.FirstName} {appointment.Patient.LastName} en {appointment.Physician.FirstName} {appointment.Physician.LastName}");
+                            }
+                            Console.WriteLine("Druk op enter om verder te gaan");
+                            Console.ReadLine();
+
+                            break;
+                        case 2:
+                            Console.WriteLine("Vul de ID in van de patient waarvan u alle afspraken wilt zien:");
+                            int patientId = int.Parse(Console.ReadLine());
+
+                            foreach (Appointment appointment in dbContext.Appointments.Include(x => x.Physician).Include(x => x.Patient).Where(x => x.PatientId == patientId))
+                            {
+                                Console.WriteLine($"Afspraak met ID: {appointment.Id} tussen {appointment.Patient.FirstName} {appointment.Patient.LastName} en {appointment.Physician.FirstName} {appointment.Physician.LastName}");
+                            }
+                            Console.WriteLine("Druk op enter om verder te gaan");
+                            Console.ReadLine();
+
+                            break;
+                        case 3:
+                            Console.WriteLine("Vul de ID in van de arts waarvan u alle afspraken wilt zien:");
+                            int physicianId = int.Parse(Console.ReadLine());
+
+                            foreach (Appointment appointment in dbContext.Appointments.Include(x => x.Physician).Include(x => x.Patient).Where(x => x.PhysicianId == physicianId))
+                            {
+                                Console.WriteLine($"Afspraak met ID: {appointment.Id} tussen {appointment.Patient.FirstName} {appointment.Patient.LastName} en {appointment.Physician.FirstName} {appointment.Physician.LastName}");
+                            }
+                            Console.WriteLine("Druk op enter om verder te gaan");
+                            Console.ReadLine();
+
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
         }
 
         private static void AddAppointment()
         {
+            Appointment newAppointment = new Appointment();
+
+            using (var dbContext = new EPDDbContext())
+            {
+                foreach (Patient patient1 in dbContext.Patients.Where(x => x.IsActive))
+                {
+                    Console.WriteLine(patient1.Id);
+                }
+
+                foreach (Physician phy in dbContext.Physicians.Where(x => x.IsActive))
+                {
+                    Console.WriteLine(phy.Id);
+                }
+
+                Console.WriteLine("Voor welke datum is de afspraak?");
+                DateTime appointmentDate;
+                string? inputDate = Console.ReadLine();
+
+                while (string.IsNullOrWhiteSpace(inputDate) || !DateTime.TryParse(inputDate, out appointmentDate))
+                {
+                    Console.WriteLine("Ongeldig formaat. Probeer opnieuw (YYYY-MM-DD):");
+                    inputDate = Console.ReadLine();
+                }
+
+                Console.WriteLine("Hoelaat wilt u de afspraak? (HH:MM):");
+                TimeSpan appointmentTime;
+                string? inputTime = Console.ReadLine();
+
+                while (string.IsNullOrWhiteSpace(inputTime) || !TimeSpan.TryParse(inputTime, out appointmentTime))
+                {
+                    Console.WriteLine("Ongeldig formaat. Probeer opnieuw (HH:MM):");
+                    inputTime = Console.ReadLine();
+                }
+
+                newAppointment.Date = appointmentDate.Date + appointmentTime;
+
+                Console.WriteLine("Voor welke patient wilt u de afspraak inplannen? Geef de ID:");
+                int patientId = 0;
+                Patient? patient = null;
+
+                do
+                {
+                    patientId = int.Parse(Console.ReadLine());
+                    patient = dbContext.Patients.FirstOrDefault(x => x.Id == patientId && x.IsActive);
+
+                    if (patient == null)
+                        Console.WriteLine("Er is geen patient gevonden met deze ID. Probeer opnieuw");
+
+                } while (patient == null);
+
+                newAppointment.Patient = patient;
+
+                Console.WriteLine("Voor welke arts wilt u de afspraak inplannen? Geef de ID:");
+                int physicianId = 0;
+                Physician? physician = null;
+
+                do
+                {
+                    physicianId = int.Parse(Console.ReadLine());
+                    physician = dbContext.Physicians.FirstOrDefault(x => x.Id == physicianId && x.IsActive);
+
+                    if (physician == null)
+                        Console.WriteLine("Er is geen physician gevonden met deze ID. Probeer opnieuw");
+
+                } while (physician == null);
+
+                newAppointment.Physician = physician;
+
+
+                dbContext.Appointments.Add(newAppointment);
+                dbContext.SaveChanges();
+            }
         }
 
         private static void DeletePhysician()

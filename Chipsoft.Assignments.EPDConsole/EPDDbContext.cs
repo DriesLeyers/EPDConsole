@@ -9,6 +9,7 @@ namespace Chipsoft.Assignments.EPDConsole
             => options.UseSqlite($"Data Source=epd.db");
         public DbSet<Patient> Patients { get; set; }
         public DbSet<Physician> Physicians { get; set; }
+        public DbSet<Appointment> Appointments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,6 +30,23 @@ namespace Chipsoft.Assignments.EPDConsole
             modelBuilder.Entity<Physician>()
                 .Property(p => p.Id)
                 .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Appointment>()
+             .HasKey(p => p.Id);
+
+            modelBuilder.Entity<Appointment>()
+                .Property(p => p.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Patient)
+                .WithMany()
+                .HasForeignKey(a => a.PatientId);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Physician)
+                .WithMany()
+                .HasForeignKey(a => a.PhysicianId);
 
             base.OnModelCreating(modelBuilder);
         }
