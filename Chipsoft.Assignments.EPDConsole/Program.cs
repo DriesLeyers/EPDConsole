@@ -7,7 +7,54 @@
 
         private static void AddPatient()
         {
-            //Do action
+            Patient newPatient = new Patient();
+
+            using (var dbContext = new EPDDbContext())
+            {
+
+                Console.WriteLine("Enter the patient's first name:");
+                newPatient.FirstName = Console.ReadLine();
+
+                Console.WriteLine("Enter the patient's last name:");
+                newPatient.LastName = Console.ReadLine();
+
+                Console.WriteLine("Enter the patient's email:");
+                newPatient.Email = Console.ReadLine();
+
+                Console.WriteLine("Enter the patient's Birthdate (YYYY-MM-DD):");
+                DateTime birthDate;
+                var inputBirthDate = Console.ReadLine();
+
+                while (string.IsNullOrWhiteSpace(inputBirthDate) || !DateTime.TryParse(inputBirthDate, out birthDate))
+                {
+                    Console.WriteLine("Invalid date format. Please enter a valid date (YYYY-MM-DD):");
+                    inputBirthDate = Console.ReadLine();
+                }
+
+                newPatient.BirthDate = birthDate;
+
+                Console.WriteLine("Enter the patient's city:");
+                newPatient.City = Console.ReadLine();
+
+                Console.WriteLine("Enter the patient's PostalCode:");
+                newPatient.PostalCode = int.Parse(Console.ReadLine());
+
+                Console.WriteLine("Enter the patient's address:");
+                newPatient.Address = Console.ReadLine();
+
+                Console.WriteLine("Enter the patient's national register number:");
+                newPatient.NationalRegisterNumber = Console.ReadLine();
+
+                Console.WriteLine("Enter the patient's phone numer:");
+                newPatient.PhoneNumber = Console.ReadLine();
+
+                Console.WriteLine("Enter the patient's gender (M/W/X)");
+                newPatient.Gender = Console.ReadLine();
+
+                dbContext.Add(newPatient);
+                dbContext.SaveChanges();
+            }
+
             //return to show menu again.
         }
 

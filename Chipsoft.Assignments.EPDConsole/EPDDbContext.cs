@@ -1,9 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Chipsoft.Assignments.EPDConsole
 {
@@ -13,5 +8,23 @@ namespace Chipsoft.Assignments.EPDConsole
         protected override void OnConfiguring(DbContextOptionsBuilder options)
             => options.UseSqlite($"Data Source=epd.db");
         public DbSet<Patient> Patients { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Patient>()
+                .HasKey(p => p.Id);
+
+            modelBuilder.Entity<Patient>()
+                .Property(p => p.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Patient>()
+                .HasIndex(p => p.NationalRegisterNumber)
+                .IsUnique();
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
+
+
 }
