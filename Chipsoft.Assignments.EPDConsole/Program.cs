@@ -141,56 +141,64 @@ namespace Chipsoft.Assignments.EPDConsole
                 Console.WriteLine("Voor welke patient wilt u de afspraak inplannen? Geef de ID:");
                 PrintAllPatients(dbContext);
 
-                int patientId = 0;
-                Patient? patient = null;
-
-                bool isPatientAvailable = true;
-
-                do
-                {
-                    patientId = int.Parse(Console.ReadLine());
-                    patient = dbContext.Patients.FirstOrDefault(x => x.Id == patientId && x.IsActive);
-
-                    if (patient == null)
-                        Console.WriteLine("Er is geen patient gevonden met deze ID. Probeer opnieuw");
-                    else
-                    {
-                        isPatientAvailable = CheckIfPatientIsAvailable(dbContext, patient, newAppointmentDate);
-                        Console.WriteLine($"Op dit moment heeft {patient.FirstName} {patient.LastName} al een afspraak. Geef een ander tijdstip op of probeer een andere patient.");
-                    }
-
-                } while (patient == null && !isPatientAvailable);
-
-                newAppointment.Patient = patient;
+                newAppointment.Patient = PickPatientForAppointment(dbContext, newAppointmentDate);
 
                 Console.WriteLine("Voor welke arts wilt u de afspraak inplannen? Geef de ID:");
                 PrintAllPhysicians(dbContext);
 
-                int physicianId = 0;
-                Physician? physician = null;
-
-                bool isPhysicianAvailable = true;
-
-                do
-                {
-                    physicianId = int.Parse(Console.ReadLine());
-                    physician = dbContext.Physicians.FirstOrDefault(x => x.Id == physicianId && x.IsActive);
-
-                    if (physician == null)
-                        Console.WriteLine("Er is geen physician gevonden met deze ID. Probeer opnieuw");
-                    else
-                    {
-                        isPhysicianAvailable = CheckIfPhysicianIsAvailable(dbContext, physician, newAppointmentDate);
-                        Console.WriteLine($"Op dit moment heeft {physician.FirstName} {physician.LastName} al een afspraak. Geef een ander tijdstip op of probeer een andere patient.");
-                    }
-
-                } while (physician == null && !isPhysicianAvailable);
-
-                newAppointment.Physician = physician;
+                newAppointment.Physician = PickPhysicianForAppointment(dbContext, newAppointmentDate);
 
                 dbContext.Appointments.Add(newAppointment);
                 dbContext.SaveChanges();
             }
+        }
+
+        private static Physician PickPhysicianForAppointment(EPDDbContext dbContext, DateTime newAppointmentDate)
+        {
+            Physician? physician = null;
+
+            int physicianId = 0;
+            bool isPhysicianAvailable = true;
+
+            do
+            {
+                physicianId = int.Parse(Console.ReadLine());
+                physician = dbContext.Physicians.FirstOrDefault(x => x.Id == physicianId && x.IsActive);
+
+                if (physician == null)
+                    Console.WriteLine("Er is geen physician gevonden met deze ID. Probeer opnieuw");
+                else
+                {
+                    isPhysicianAvailable = CheckIfPhysicianIsAvailable(dbContext, physician, newAppointmentDate);
+                    Console.WriteLine($"Op dit moment heeft {physician.FirstName} {physician.LastName} al een afspraak. Geef een ander tijdstip op of probeer een andere patient.");
+                }
+
+            } while (physician == null && !isPhysicianAvailable);
+
+            return physician;
+        }
+
+        private static Patient PickPatientForAppointment(EPDDbContext dbContext, DateTime newAppointmentDate)
+        {
+            Patient? patient = null;
+            int patientId = 0;
+            bool isPatientAvailable = true;
+
+            do
+            {
+                patientId = int.Parse(Console.ReadLine());
+                patient = dbContext.Patients.FirstOrDefault(x => x.Id == patientId && x.IsActive);
+
+                if (patient == null)
+                    Console.WriteLine("Er is geen patient gevonden met deze ID. Probeer opnieuw");
+                else
+                {
+                    isPatientAvailable = CheckIfPatientIsAvailable(dbContext, patient, newAppointmentDate);
+                    Console.WriteLine($"Op dit moment heeft {patient.FirstName} {patient.LastName} al een afspraak. Geef een ander tijdstip op of probeer een andere patient.");
+                }
+            } while (patient == null || !isPatientAvailable);
+
+            return patient;
         }
 
         private static bool CheckIfPatientIsAvailable(EPDDbContext dbContext, Patient patient, DateTime date)
@@ -204,7 +212,6 @@ namespace Chipsoft.Assignments.EPDConsole
             return dbContext.Appointments.Where(x => x.PhysicianId == physician.Id).ToList()
                 .Where(x => x.Date == date).Count() == 0;
         }
-
 
         private static void PrintAllPatients(EPDDbContext context)
         {
