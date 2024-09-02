@@ -115,16 +115,6 @@ namespace Chipsoft.Assignments.EPDConsole
 
             using (var dbContext = new EPDDbContext())
             {
-                foreach (Patient patient1 in dbContext.Patients.Where(x => x.IsActive))
-                {
-                    Console.WriteLine(patient1.Id);
-                }
-
-                foreach (Physician phy in dbContext.Physicians.Where(x => x.IsActive))
-                {
-                    Console.WriteLine(phy.Id);
-                }
-
                 Console.WriteLine("Voor welke datum is de afspraak?");
                 DateTime appointmentDate;
                 string? inputDate = Console.ReadLine();
