@@ -11,51 +11,48 @@
 
             using (var dbContext = new EPDDbContext())
             {
-
-                Console.WriteLine("Enter the patient's first name:");
+                Console.WriteLine("Voer de voornaam van de patient in:");
                 newPatient.FirstName = Console.ReadLine();
 
-                Console.WriteLine("Enter the patient's last name:");
+                Console.WriteLine("Voer de achternaam van de patient in:");
                 newPatient.LastName = Console.ReadLine();
 
-                Console.WriteLine("Enter the patient's email:");
+                Console.WriteLine("Voer de email van de patient in:");
                 newPatient.Email = Console.ReadLine();
 
-                Console.WriteLine("Enter the patient's Birthdate (YYYY-MM-DD):");
+                Console.WriteLine("Voer de geboortedatum van de patient in: (YYYY-MM-DD):");
                 DateTime birthDate;
                 var inputBirthDate = Console.ReadLine();
 
                 while (string.IsNullOrWhiteSpace(inputBirthDate) || !DateTime.TryParse(inputBirthDate, out birthDate))
                 {
-                    Console.WriteLine("Invalid date format. Please enter a valid date (YYYY-MM-DD):");
+                    Console.WriteLine("Ongeldig formaat. Probeer opnieuw (YYYY-MM-DD):");
                     inputBirthDate = Console.ReadLine();
                 }
 
                 newPatient.BirthDate = birthDate;
 
-                Console.WriteLine("Enter the patient's city:");
+                Console.WriteLine("Voer het dorp of de stad van de patient in:");
                 newPatient.City = Console.ReadLine();
 
-                Console.WriteLine("Enter the patient's PostalCode:");
+                Console.WriteLine("Voer de postcode van de patient in:");
                 newPatient.PostalCode = int.Parse(Console.ReadLine());
 
-                Console.WriteLine("Enter the patient's address:");
+                Console.WriteLine("Voer het adres van de patient in:");
                 newPatient.Address = Console.ReadLine();
 
-                Console.WriteLine("Enter the patient's national register number:");
+                Console.WriteLine("Voer het rijksregisternummer van de patient in:");
                 newPatient.NationalRegisterNumber = Console.ReadLine();
 
-                Console.WriteLine("Enter the patient's phone numer:");
+                Console.WriteLine("Voer het telefoonnummer van de patient in:");
                 newPatient.PhoneNumber = Console.ReadLine();
 
-                Console.WriteLine("Enter the patient's gender (M/W/X)");
+                Console.WriteLine("Geef het geslacht van de patient in: (M/V/X)");
                 newPatient.Gender = Console.ReadLine();
 
                 dbContext.Add(newPatient);
                 dbContext.SaveChanges();
             }
-
-            //return to show menu again.
         }
 
         private static void ShowAppointment()
@@ -68,15 +65,83 @@
 
         private static void DeletePhysician()
         {
+            Console.WriteLine("Voer de ID in van de arts die u wilt verwijderen:");
+
+            using (var dbContext = new EPDDbContext())
+            {
+                int physicianId = 0;
+                Physician? physician = null;
+
+                do
+                {
+                    physicianId = int.Parse(Console.ReadLine());
+                    physician = dbContext.Physicians.FirstOrDefault(x => x.Id == physicianId && x.IsActive);
+
+                    if (physician == null)
+                        Console.WriteLine("Er is geen arts gevonden met deze ID. Probeer opnieuw");
+
+                } while (physician == null);
+
+                Console.WriteLine($"Controleer de gegevens de arts die u wilt verwijderen: {physician.FirstName} {physician.LastName} with id: {physician.Id} \nDruk enter om verder te bevestigen: ");
+                Console.ReadLine();
+
+                physician.IsActive = false;
+
+                dbContext.Physicians.Update(physician);
+                dbContext.SaveChanges();
+            }
         }
 
         private static void AddPhysician()
         {
+            Physician newPhysician = new Physician();
+
+            using (var dbContext = new EPDDbContext())
+            {
+                Console.WriteLine("Voer de voornaam van de arts in:");
+                newPhysician.FirstName = Console.ReadLine();
+
+                Console.WriteLine("Voer de achternaam van de arts in:");
+                newPhysician.LastName = Console.ReadLine();
+
+                Console.WriteLine("Voer de email van de arts in:");
+                newPhysician.Email = Console.ReadLine();
+
+                Console.WriteLine("Voer de geboortedatum van de arts in (YYYY-MM-DD):");
+                DateTime birthDate;
+                var inputBirthDate = Console.ReadLine();
+
+                while (string.IsNullOrWhiteSpace(inputBirthDate) || !DateTime.TryParse(inputBirthDate, out birthDate))
+                {
+                    Console.WriteLine("Ongeldig formaat. Probeer opnieuw (YYYY-MM-DD):");
+                    inputBirthDate = Console.ReadLine();
+                }
+
+                newPhysician.BirthDate = birthDate;
+
+                Console.WriteLine("Voer het dorp of de stad van de arts in:");
+                newPhysician.City = Console.ReadLine();
+
+                Console.WriteLine("Voer de postcode van de arts in:");
+                newPhysician.PostalCode = int.Parse(Console.ReadLine());
+
+                Console.WriteLine("Voer het adres van de arts in:");
+                newPhysician.Address = Console.ReadLine();
+
+                Console.WriteLine("Voer het tefeloonnummer van de arts in:");
+                newPhysician.PhoneNumber = Console.ReadLine();
+
+                Console.WriteLine("Geef het geslacht van de arts in (M/V/X):");
+                newPhysician.Gender = Console.ReadLine();
+
+                dbContext.Add(newPhysician);
+                dbContext.SaveChanges();
+            }
         }
 
         private static void DeletePatient()
         {
-            Console.WriteLine("Enter the id of the patient you want to delete:");
+            Console.WriteLine("Voer de ID in van de patiënt die u wilt verwijderen:");
 
             using (var dbContext = new EPDDbContext())
             {
@@ -86,17 +151,19 @@
                 do
                 {
                     patientId = int.Parse(Console.ReadLine());
-                    patient = dbContext.Patients.FirstOrDefault(x => x.Id == patientId);
+                    patient = dbContext.Patients.FirstOrDefault(x => x.Id == patientId && x.IsActive);
 
                     if (patient == null)
-                        Console.WriteLine("No patient found with this id. Please try again.");
+                        Console.WriteLine("Er is geen patient gevonden met deze ID. Probeer opnieuw");
 
                 } while (patient == null);
 
-                Console.WriteLine($"Please check if you want to delete this user: {patient.FirstName} {patient.LastName} with id: {patient.Id} \n Press enter to continue: ");
+                Console.WriteLine($"Controleer de gegevens de patient die u wilt verwijderen: {patient.FirstName} {patient.LastName} with id: {patient.Id} \nDruk enter om verder te bevestigen: ");
                 Console.ReadLine();
 
-                dbContext.Patients.Remove(patient);
+                patient.IsActive = false;
+
+                dbContext.Patients.Update(patient);
                 dbContext.SaveChanges();
             }
         }

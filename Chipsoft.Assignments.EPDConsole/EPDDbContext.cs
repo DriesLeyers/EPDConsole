@@ -8,6 +8,7 @@ namespace Chipsoft.Assignments.EPDConsole
         protected override void OnConfiguring(DbContextOptionsBuilder options)
             => options.UseSqlite($"Data Source=epd.db");
         public DbSet<Patient> Patients { get; set; }
+        public DbSet<Physician> Physicians { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -21,6 +22,13 @@ namespace Chipsoft.Assignments.EPDConsole
             modelBuilder.Entity<Patient>()
                 .HasIndex(p => p.NationalRegisterNumber)
                 .IsUnique();
+
+            modelBuilder.Entity<Physician>()
+               .HasKey(p => p.Id);
+
+            modelBuilder.Entity<Physician>()
+                .Property(p => p.Id)
+                .ValueGeneratedOnAdd();
 
             base.OnModelCreating(modelBuilder);
         }

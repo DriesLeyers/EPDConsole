@@ -23,5 +23,8 @@ namespace Chipsoft.Assignments.EPDConsole
         public string? PhoneNumber { get; set; }
         [Required]
         public string? Gender { get; set; }
+        [Required]
+        public bool IsActive { get; set; } = true;
+
     }
 }
