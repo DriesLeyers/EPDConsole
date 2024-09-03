@@ -86,15 +86,21 @@ namespace Chipsoft.Assignments.EPDConsole
 
             newAppointment.Patient = PickPatientForAppointment(newAppointment.Date);
 
+            if (newAppointment.Patient == null)
+                return;
+
             Console.WriteLine("Voor welke arts wilt u de afspraak inplannen? Geef de ID:");
             dataService.PrintAllPhysicians();
 
             newAppointment.Physician = PickPhysicianForAppointment(newAppointment.Date);
 
+            if (newAppointment.Physician == null)
+                return;
+
             dataService.AddAppointment(newAppointment);
         }
 
-        private static Physician PickPhysicianForAppointment(DateTime newAppointmentDate)
+        private static Physician? PickPhysicianForAppointment(DateTime newAppointmentDate)
         {
             bool isPhysicianAvailable = true;
 
@@ -102,6 +108,9 @@ namespace Chipsoft.Assignments.EPDConsole
             do
             {
                 var physicianId = inputService.GetNumberInput("");
+                if (physicianId == -1)
+                    return null;
+
                 physician = dataService.GetPhysicianById(physicianId);
 
                 if (physician == null)
@@ -110,7 +119,7 @@ namespace Chipsoft.Assignments.EPDConsole
                 {
                     isPhysicianAvailable = dataService.CheckIfPhysicianIsAvailable(physician, newAppointmentDate);
                     if (!isPhysicianAvailable)
-                        Console.WriteLine($"Op dit moment heeft {physician.FirstName} {physician.LastName} al een afspraak. Geef een ander tijdstip op of probeer een andere patient.");
+                        Console.WriteLine($"Op dit moment heeft {physician.FirstName} {physician.LastName} al een afspraak. Geef een ander tijdstip op of probeer een andere patient. Geef -1 in om te stoppen");
                 }
 
             } while (physician == null || !isPhysicianAvailable);
@@ -118,7 +127,7 @@ namespace Chipsoft.Assignments.EPDConsole
             return physician;
         }
 
-        private static Patient PickPatientForAppointment(DateTime newAppointmentDate)
+        private static Patient? PickPatientForAppointment(DateTime newAppointmentDate)
         {
             bool isPatientAvailable = true;
 
@@ -126,6 +135,10 @@ namespace Chipsoft.Assignments.EPDConsole
             do
             {
                 var patientId = inputService.GetNumberInput("");
+
+                if (patientId == -1)
+                    return null;
+
                 patient = dataService.GetPatientById(patientId);
 
                 if (patient == null)
@@ -134,7 +147,7 @@ namespace Chipsoft.Assignments.EPDConsole
                 {
                     isPatientAvailable = dataService.CheckIfPatientIsAvailable(patient, newAppointmentDate);
                     if (!isPatientAvailable)
-                        Console.WriteLine($"Op dit moment heeft {patient.FirstName} {patient.LastName} al een afspraak. Geef een ander tijdstip op of probeer een andere patient.");
+                        Console.WriteLine($"Op dit moment heeft {patient.FirstName} {patient.LastName} al een afspraak. Geef een ander tijdstip op of probeer een andere patient. Geef -1 in om te stoppen");
                 }
             } while (patient == null || !isPatientAvailable);
 
