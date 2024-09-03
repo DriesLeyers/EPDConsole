@@ -1,60 +1,26 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace Chipsoft.Assignments.EPDConsole
+﻿namespace Chipsoft.Assignments.EPDConsole
 {
     public class Program
     {
-        //Don't create EF migrations, use the reset db option
-        //This deletes and recreates the db, this makes sure all tables exist
+        static InputService inputService = new InputService();
+        static DataService dataService = new DataService();
 
         private static void AddPatient()
         {
             Patient newPatient = new Patient();
 
-            using (var dbContext = new EPDDbContext())
-            {
-                Console.WriteLine("Voer de voornaam van de patient in:");
-                newPatient.FirstName = Console.ReadLine();
+            newPatient.FirstName = inputService.GetStringInput("Voer de voornaam van de patient in:");
+            newPatient.LastName = inputService.GetStringInput("Voer de achternaam van de patient in:");
+            newPatient.Email = inputService.GetStringInput("Voer de email van de patient in:");
+            newPatient.BirthDate = inputService.GetDateInput("Voer de geboortedatum van de patient in: (YYYY-MM-DD):");
+            newPatient.City = inputService.GetStringInput("Voer het dorp of de stad van de patient in:");
+            newPatient.PostalCode = inputService.GetNumberInput("Voer de postcode van het dorp / de stad in:");
+            newPatient.Address = inputService.GetStringInput("Voer het adres van de patient in:");
+            newPatient.NationalRegisterNumber = inputService.GetStringInput("Voer het rijksregisternummer van de patient in:");
+            newPatient.PhoneNumber = inputService.GetStringInput("Voer het telefoonnummer van de patient in:");
+            newPatient.Gender = inputService.GetStringInput("Geef het geslacht van de patient in: (M/V/X)");
 
-                Console.WriteLine("Voer de achternaam van de patient in:");
-                newPatient.LastName = Console.ReadLine();
-
-                Console.WriteLine("Voer de email van de patient in:");
-                newPatient.Email = Console.ReadLine();
-
-                Console.WriteLine("Voer de geboortedatum van de patient in: (YYYY-MM-DD):");
-                DateTime birthDate;
-                var inputBirthDate = Console.ReadLine();
-
-                while (string.IsNullOrWhiteSpace(inputBirthDate) || !DateTime.TryParse(inputBirthDate, out birthDate))
-                {
-                    Console.WriteLine("Ongeldig formaat. Probeer opnieuw (YYYY-MM-DD):");
-                    inputBirthDate = Console.ReadLine();
-                }
-
-                newPatient.BirthDate = birthDate;
-
-                Console.WriteLine("Voer het dorp of de stad van de patient in:");
-                newPatient.City = Console.ReadLine();
-
-                Console.WriteLine("Voer de postcode van de patient in:");
-                newPatient.PostalCode = int.Parse(Console.ReadLine());
-
-                Console.WriteLine("Voer het adres van de patient in:");
-                newPatient.Address = Console.ReadLine();
-
-                Console.WriteLine("Voer het rijksregisternummer van de patient in:");
-                newPatient.NationalRegisterNumber = Console.ReadLine();
-
-                Console.WriteLine("Voer het telefoonnummer van de patient in:");
-                newPatient.PhoneNumber = Console.ReadLine();
-
-                Console.WriteLine("Geef het geslacht van de patient in: (M/V/X)");
-                newPatient.Gender = Console.ReadLine();
-
-                dbContext.Add(newPatient);
-                dbContext.SaveChanges();
-            }
+            dataService.AddPatient(newPatient);
         }
 
         private static void ShowAppointment()
@@ -63,49 +29,43 @@ namespace Chipsoft.Assignments.EPDConsole
             Console.WriteLine("2 - Alle afspraken zoeken voor patient");
             Console.WriteLine("3 - Alle afspraken zoeken voor arts");
 
-            using (var dbContext = new EPDDbContext())
+            if (int.TryParse(Console.ReadLine(), out int option))
             {
-                if (int.TryParse(Console.ReadLine(), out int option))
+                switch (option)
                 {
-                    switch (option)
-                    {
-                        case 1:
-                            foreach (Appointment appointment in dbContext.Appointments.Include(x => x.Physician).Include(x => x.Patient))
-                            {
-                                Console.WriteLine($"Afspraak met ID: {appointment.Id} tussen {appointment.Patient.FirstName} {appointment.Patient.LastName} en {appointment.Physician.FirstName} {appointment.Physician.LastName} op {appointment.Date}");
-                            }
-                            Console.WriteLine("Druk op enter om verder te gaan");
-                            Console.ReadLine();
+                    case 1:
+                        ShowAppointments(dataService.GetAllAppointments());
+                        Console.WriteLine("Druk op enter om verder te gaan");
+                        Console.ReadLine();
 
-                            break;
-                        case 2:
-                            Console.WriteLine("Vul de ID in van de patient waarvan u alle afspraken wilt zien:");
-                            int patientId = int.Parse(Console.ReadLine());
+                        break;
+                    case 2:
+                        int patientId = inputService.GetNumberInput("Vul de ID in van de patient waarvan u alle afspraken wilt zien:");
+                        ShowAppointments(dataService.GetAllAppointmentsByPatientId(patientId));
 
-                            foreach (Appointment appointment in dbContext.Patients.First(x => x.Id == patientId).Appointments)
-                            {
-                                Console.WriteLine($"Afspraak met ID: {appointment.Id} tussen {appointment.Patient.FirstName} {appointment.Patient.LastName} en {appointment.Physician.FirstName} {appointment.Physician.LastName} op {appointment.Date}");
-                            }
-                            Console.WriteLine("Druk op enter om verder te gaan");
-                            Console.ReadLine();
+                        Console.WriteLine("Druk op enter om verder te gaan");
+                        Console.ReadLine();
 
-                            break;
-                        case 3:
-                            Console.WriteLine("Vul de ID in van de arts waarvan u alle afspraken wilt zien:");
-                            int physicianId = int.Parse(Console.ReadLine());
+                        break;
+                    case 3:
+                        int physicianId = inputService.GetNumberInput("Vul de ID in van de arts waarvan u alle afspraken wilt zien:");
+                        ShowAppointments(dataService.GetAllAppointmentsByPhysicianId(physicianId));
 
-                            foreach (Appointment appointment in dbContext.Physicians.First(x => x.Id == physicianId).Appointments)
-                            {
-                                Console.WriteLine($"Afspraak met ID: {appointment.Id} tussen {appointment.Patient.FirstName} {appointment.Patient.LastName} en {appointment.Physician.FirstName} {appointment.Physician.LastName} op {appointment.Date}");
-                            }
-                            Console.WriteLine("Druk op enter om verder te gaan");
-                            Console.ReadLine();
+                        Console.WriteLine("Druk op enter om verder te gaan");
+                        Console.ReadLine();
 
-                            break;
-                        default:
-                            break;
-                    }
+                        break;
+                    default:
+                        break;
                 }
+            }
+        }
+
+        private static void ShowAppointments(ICollection<Appointment> appointments)
+        {
+            foreach (Appointment appointment in appointments)
+            {
+                Console.WriteLine($"Afspraak met ID: {appointment.Id} tussen {appointment.Patient.FirstName} {appointment.Patient.LastName} en {appointment.Physician.FirstName} {appointment.Physician.LastName} op {appointment.Date}");
             }
         }
 
@@ -113,64 +73,41 @@ namespace Chipsoft.Assignments.EPDConsole
         {
             Appointment newAppointment = new Appointment();
 
-            using (var dbContext = new EPDDbContext())
-            {
-                Console.WriteLine("Voor welke datum is de afspraak? (YYYY-MM-DD):");
-                DateTime appointmentDate;
-                string? inputDate = Console.ReadLine();
+            var appointmentDate = inputService.GetDateInput("Voor welke datum is de afspraak? (YYYY-MM-DD):");
+            var appointmentTime = inputService.GetTimeInput("Hoelaat wilt u de afspraak? (HH:MM):");
 
-                while (string.IsNullOrWhiteSpace(inputDate) || !DateTime.TryParse(inputDate, out appointmentDate))
-                {
-                    Console.WriteLine("Ongeldig formaat. Probeer opnieuw (YYYY-MM-DD):");
-                    inputDate = Console.ReadLine();
-                }
+            newAppointment.Date = appointmentDate.Date + appointmentTime;
 
-                Console.WriteLine("Hoelaat wilt u de afspraak? (HH:MM):");
-                TimeSpan appointmentTime;
-                string? inputTime = Console.ReadLine();
+            Console.WriteLine("Voor welke patient wilt u de afspraak inplannen? Geef de ID:");
+            dataService.PrintAllPatients();
 
-                while (string.IsNullOrWhiteSpace(inputTime) || !TimeSpan.TryParse(inputTime, out appointmentTime))
-                {
-                    Console.WriteLine("Ongeldig formaat. Probeer opnieuw (HH:MM):");
-                    inputTime = Console.ReadLine();
-                }
+            newAppointment.Patient = PickPatientForAppointment(newAppointment.Date);
 
-                var newAppointmentDate = appointmentDate.Date + appointmentTime;
-                newAppointment.Date = newAppointmentDate;
+            Console.WriteLine("Voor welke arts wilt u de afspraak inplannen? Geef de ID:");
+            dataService.PrintAllPhysicians();
 
-                Console.WriteLine("Voor welke patient wilt u de afspraak inplannen? Geef de ID:");
-                PrintAllPatients(dbContext);
+            newAppointment.Physician = PickPhysicianForAppointment(newAppointment.Date);
 
-                newAppointment.Patient = PickPatientForAppointment(dbContext, newAppointmentDate);
-
-                Console.WriteLine("Voor welke arts wilt u de afspraak inplannen? Geef de ID:");
-                PrintAllPhysicians(dbContext);
-
-                newAppointment.Physician = PickPhysicianForAppointment(dbContext, newAppointmentDate);
-
-                dbContext.Appointments.Add(newAppointment);
-                dbContext.SaveChanges();
-            }
+            dataService.AddAppointment(newAppointment);
         }
 
-        private static Physician PickPhysicianForAppointment(EPDDbContext dbContext, DateTime newAppointmentDate)
+        private static Physician PickPhysicianForAppointment(DateTime newAppointmentDate)
         {
-            Physician? physician = null;
-
-            int physicianId = 0;
             bool isPhysicianAvailable = true;
 
+            Physician? physician;
             do
             {
-                physicianId = int.Parse(Console.ReadLine());
-                physician = dbContext.Physicians.FirstOrDefault(x => x.Id == physicianId && x.IsActive);
+                var physicianId = inputService.GetNumberInput("");
+                physician = dataService.GetPhysicianById(physicianId);
 
                 if (physician == null)
                     Console.WriteLine("Er is geen physician gevonden met deze ID. Probeer opnieuw");
                 else
                 {
-                    isPhysicianAvailable = CheckIfPhysicianIsAvailable(dbContext, physician, newAppointmentDate);
-                    Console.WriteLine($"Op dit moment heeft {physician.FirstName} {physician.LastName} al een afspraak. Geef een ander tijdstip op of probeer een andere patient.");
+                    isPhysicianAvailable = dataService.CheckIfPhysicianIsAvailable(physician, newAppointmentDate);
+                    if (!isPhysicianAvailable)
+                        Console.WriteLine($"Op dit moment heeft {physician.FirstName} {physician.LastName} al een afspraak. Geef een ander tijdstip op of probeer een andere patient.");
                 }
 
             } while (physician == null || !isPhysicianAvailable);
@@ -178,130 +115,77 @@ namespace Chipsoft.Assignments.EPDConsole
             return physician;
         }
 
-        private static Patient PickPatientForAppointment(EPDDbContext dbContext, DateTime newAppointmentDate)
+        private static Patient PickPatientForAppointment(DateTime newAppointmentDate)
         {
-            Patient? patient = null;
-            int patientId = 0;
             bool isPatientAvailable = true;
 
+            Patient? patient;
             do
             {
-                patientId = int.Parse(Console.ReadLine());
-                patient = dbContext.Patients.FirstOrDefault(x => x.Id == patientId && x.IsActive);
+                var patientId = inputService.GetNumberInput("");
+                patient = dataService.GetPatientById(patientId);
 
                 if (patient == null)
                     Console.WriteLine("Er is geen patient gevonden met deze ID. Probeer opnieuw");
                 else
                 {
-                    isPatientAvailable = CheckIfPatientIsAvailable(dbContext, patient, newAppointmentDate);
-                    Console.WriteLine($"Op dit moment heeft {patient.FirstName} {patient.LastName} al een afspraak. Geef een ander tijdstip op of probeer een andere patient.");
+                    isPatientAvailable = dataService.CheckIfPatientIsAvailable(patient, newAppointmentDate);
+                    if (!isPatientAvailable)
+                        Console.WriteLine($"Op dit moment heeft {patient.FirstName} {patient.LastName} al een afspraak. Geef een ander tijdstip op of probeer een andere patient.");
                 }
             } while (patient == null || !isPatientAvailable);
 
             return patient;
         }
 
-        private static bool CheckIfPatientIsAvailable(EPDDbContext dbContext, Patient patient, DateTime date)
-        {
-            return !dbContext.Appointments.Where(x => x.Patient.Id == patient.Id).ToList()
-                .Where(x => x.Date == date).Any();
-        }
-
-        private static bool CheckIfPhysicianIsAvailable(EPDDbContext dbContext, Physician physician, DateTime date)
-        {
-            return !dbContext.Appointments.Where(x => x.Physician.Id == physician.Id).ToList()
-                .Where(x => x.Date == date).Any();
-        }
-
-        private static void PrintAllPatients(EPDDbContext context)
-        {
-            foreach (Patient patient in context.Patients.Where(x => x.IsActive))
-            {
-                Console.WriteLine($"ID: {patient.Id} Naam: {patient.FirstName} Achternaam: {patient.LastName}");
-            }
-        }
-
-        private static void PrintAllPhysicians(EPDDbContext context)
-        {
-            foreach (Physician physicians in context.Physicians.Where(x => x.IsActive))
-            {
-                Console.WriteLine($"ID: {physicians.Id} Naam: {physicians.FirstName} Achternaam: {physicians.LastName}");
-            }
-        }
-
         private static void DeletePhysician()
         {
-            Console.WriteLine("Voer de ID in van de arts die u wilt verwijderen:");
+            Physician? physician;
 
-            using (var dbContext = new EPDDbContext())
+            do
             {
-                int physicianId = 0;
-                Physician? physician = null;
+                var physicianId = inputService.GetNumberInput("Voer de ID in van de arts die u wilt verwijderen:");
+                physician = dataService.GetPhysicianById(physicianId);
 
-                do
-                {
-                    physicianId = int.Parse(Console.ReadLine());
-                    physician = dbContext.Physicians.FirstOrDefault(x => x.Id == physicianId && x.IsActive);
+                if (physician == null)
+                    Console.WriteLine("Er is geen arts gevonden met deze ID. Probeer opnieuw");
 
-                    if (physician == null)
-                        Console.WriteLine("Er is geen arts gevonden met deze ID. Probeer opnieuw");
+            } while (physician == null);
 
-                } while (physician == null);
+            Console.WriteLine($"Controleer de gegevens de arts die u wilt verwijderen: {physician.FirstName} {physician.LastName} with id: {physician.Id} \nDruk enter om verder te bevestigen: ");
+            Console.ReadLine();
 
-                Console.WriteLine($"Controleer de gegevens de arts die u wilt verwijderen: {physician.FirstName} {physician.LastName} with id: {physician.Id} \nDruk enter om verder te bevestigen: ");
-                Console.ReadLine();
-
-                physician.IsActive = false;
-
-                dbContext.Physicians.Update(physician);
-                dbContext.SaveChanges();
-            }
+            dataService.DeletePhysician(physician);
         }
 
         private static void AddPhysician()
         {
             Physician newPhysician = new Physician();
 
-            using (var dbContext = new EPDDbContext())
-            {
-                Console.WriteLine("Voer de voornaam van de arts in:");
-                newPhysician.FirstName = Console.ReadLine();
+            newPhysician.FirstName = inputService.GetStringInput("Voer de voornaam van de arts in:");
+            newPhysician.LastName = inputService.GetStringInput("Voer de achternaam van de arts in:");
 
-                Console.WriteLine("Voer de achternaam van de arts in:");
-                newPhysician.LastName = Console.ReadLine();
-
-                dbContext.Add(newPhysician);
-                dbContext.SaveChanges();
-            }
+            dataService.AddPhysician(newPhysician);
         }
 
         private static void DeletePatient()
         {
-            Console.WriteLine("Voer de ID in van de patiënt die u wilt verwijderen:");
+            Patient? patient;
 
-            using (var dbContext = new EPDDbContext())
+            do
             {
-                int patientId = 0;
-                Patient? patient = null;
+                var patientId = inputService.GetNumberInput("Voer de ID in van de patiënt die u wilt verwijderen:");
+                patient = dataService.GetPatientById(patientId);
 
-                do
-                {
-                    patientId = int.Parse(Console.ReadLine());
-                    patient = dbContext.Patients.FirstOrDefault(x => x.Id == patientId && x.IsActive);
+                if (patient == null)
+                    Console.WriteLine("Er is geen patient gevonden met deze ID. Probeer opnieuw");
 
-                    if (patient == null)
-                        Console.WriteLine("Er is geen patient gevonden met deze ID. Probeer opnieuw");
+            } while (patient == null);
 
-                } while (patient == null);
+            Console.WriteLine($"Controleer de gegevens de patient die u wilt verwijderen: {patient.FirstName} {patient.LastName} with id: {patient.Id} \nDruk enter om verder te bevestigen: ");
+            Console.ReadLine();
 
-                Console.WriteLine($"Controleer de gegevens de patient die u wilt verwijderen: {patient.FirstName} {patient.LastName} with id: {patient.Id} \nDruk enter om verder te bevestigen: ");
-                Console.ReadLine();
-
-                patient.IsActive = false;
-
-                dbContext.Patients.Update(patient);
-                dbContext.SaveChanges();
-            }
+            dataService.DeletePatient(patient);
         }
 
         #region FreeCodeForAssignment
