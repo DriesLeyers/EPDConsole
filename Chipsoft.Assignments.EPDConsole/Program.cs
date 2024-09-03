@@ -203,10 +203,12 @@ namespace Chipsoft.Assignments.EPDConsole
         public static bool ShowMenu()
         {
             Console.Clear();
+
             foreach (var line in File.ReadAllLines("logo.txt"))
             {
                 Console.WriteLine(line);
             }
+
             Console.WriteLine("");
             Console.WriteLine("1 - Patient toevoegen");
             Console.WriteLine("2 - Patienten verwijderen");

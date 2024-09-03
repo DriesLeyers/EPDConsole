@@ -1,4 +1,4 @@
-﻿namespace Chipsoft.Assignments.EPDConsole
+﻿namespace Chipsoft.Assignments.EPDConsole.Services
 {
     public class InputService
     {
@@ -48,7 +48,7 @@
             return appointmentTime;
         }
 
-        public int GetNumberInput(string? textToDisplay)
+        public int GetNumberInput(string textToDisplay)
         {
             Console.WriteLine(textToDisplay);
             var inputReceived = Console.ReadLine();

@@ -1,4 +1,6 @@
-﻿namespace Chipsoft.Assignments.EPDConsole.Services
+﻿using Chipsoft.Assignments.EPDConsole.Entity;
+
+namespace Chipsoft.Assignments.EPDConsole.Services
 {
     public class DataService
     {
