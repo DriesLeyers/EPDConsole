@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Chipsoft.Assignments.EPDConsole
+namespace Chipsoft.Assignments.EPDConsole.Entity
 {
     public class Patient
     {

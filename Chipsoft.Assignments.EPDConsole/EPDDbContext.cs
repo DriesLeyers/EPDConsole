@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Chipsoft.Assignments.EPDConsole.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chipsoft.Assignments.EPDConsole
 {

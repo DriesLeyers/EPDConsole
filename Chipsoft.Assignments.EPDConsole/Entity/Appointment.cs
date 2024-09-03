@@ -1,4 +1,4 @@
-﻿namespace Chipsoft.Assignments.EPDConsole
+﻿namespace Chipsoft.Assignments.EPDConsole.Entity
 {
     public class Appointment
     {
